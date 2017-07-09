@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainView"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:gravity="center|left"
+    android:orientation="horizontal"
+    android:paddingTop="16dp"
+    android:background="?attr/selectableItemBackground">
+    <View
+        android:id="@+id/line_break"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/grey_500"/>
+    <ImageView
+        android:paddingLeft="16dp"
+        android:id="@+id/itemIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_home_black_18dp" />
+
+    <TextView
+        android:id="@+id/itemNameTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Menu Item"
+        android:textColor="@android:color/black"
+        android:textSize="14sp" />
+</LinearLayout>
