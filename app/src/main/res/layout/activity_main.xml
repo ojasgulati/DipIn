@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
     tools:context="com.example.bittu.dipin.MainActivity">
 
     <android.support.v4.widget.DrawerLayout
@@ -31,7 +32,7 @@
             android:id="@+id/drawerViewLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:background="@android:color/white">
 
             <com.mindorks.placeholderview.PlaceHolderView

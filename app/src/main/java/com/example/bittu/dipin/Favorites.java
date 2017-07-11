@@ -182,12 +182,11 @@ public class Favorites extends AppCompatActivity {
         @Override
         public FavViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(mContext).inflate(R.layout.fav_layout_item, parent, false);
-            FavViewHolder vh = new FavViewHolder(view);
-            return vh;
+            return new FavViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(final FavViewHolder holder, final int position) {
+        public void onBindViewHolder(final FavViewHolder holder,int position) {
             final News currentNews = mNews.get(position);
             holder.title.setText(currentNews.getHeadline());
             holder.date.setText(currentNews.getDate());
@@ -251,7 +250,7 @@ public class Favorites extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, DetailActivity.class);
-                    intent.putExtra(mContext.getString(R.string.intent_position_detail), position);
+                    intent.putExtra(mContext.getString(R.string.intent_position_detail), holder.getAdapterPosition());
                     mContext.startActivity(intent);
                     overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
                 }

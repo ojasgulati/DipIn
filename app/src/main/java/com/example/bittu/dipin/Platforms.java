@@ -119,8 +119,7 @@ public class Platforms extends AppCompatActivity {
         @Override
         public PlatformsViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(mContext).inflate(R.layout.platforms_item_layout, parent, false);
-            PlatformsViewHolder vh = new PlatformsViewHolder(view);
-            return vh;
+            return new PlatformsViewHolder(view);
         }
 
         @Override

@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             @InjectView(R.id.image)
             ImageView image;
             @InjectView(R.id.list_item_layout)
-            LinearLayout listItemLayout;
+            FrameLayout listItemLayout;
             @InjectView(R.id.text_layout)
             LinearLayout textLayout;
             @InjectView(R.id.detail)
@@ -318,12 +318,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(mContext).inflate(R.layout.list_item, parent, false);
-            ViewHolder vh = new ViewHolder(view);
-            return vh;
+            return new ViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, final int position) {
+        public void onBindViewHolder(final ViewHolder holder,int position) {
 
             final News currentNews = mNews.get(position);
             if (currentNews.getHeadline() != "null")
@@ -336,7 +335,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 holder.image.setImageDrawable(getDrawable(R.drawable.not_available));
 
             holder.detail.setVisibility(View.GONE);
-
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -423,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, DetailActivity.class);
-                    intent.putExtra(mContext.getString(R.string.intent_position_detail), position);
+                    intent.putExtra(mContext.getString(R.string.intent_position_detail), holder.getAdapterPosition());
                     mContext.startActivity(intent);
                     overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
                 }

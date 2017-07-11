@@ -13,7 +13,8 @@
         android:layout_height="1dp"
         android:background="@color/grey_500"/>
     <ImageView
-        android:paddingLeft="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:id="@+id/itemIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -23,9 +24,9 @@
         android:id="@+id/itemNameTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="40dp"
+        android:layout_marginEnd="40dp"
         android:fontFamily="sans-serif-medium"
-        android:text="Menu Item"
+        android:text="@string/menu_item"
         android:textColor="@android:color/black"
         android:textSize="14sp" />
 </LinearLayout>

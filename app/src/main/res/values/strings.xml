@@ -64,9 +64,16 @@
     <string name="The_Times_of_India">The Times of India</string>
     <string name="The_Verge">The Verge</string>
     <string name="Time">Time</string>
-    <string name="appwidget_text">EXAMPLE</string>
 
-
-    <string name="add_widget">Add widget</string>
+    <string name="content_headline">headline</string>
+    <string name="content_date">date</string>
+    <string name="content_read_more">read more</string>
+    <string name="content_headline_image">headline image</string>
+    <string name="content_favorite">favorite</string>
+    <string name="content_share">Share</string>
+    <string name="content_source_image">source image</string>
+    <string name="content_source_title">source title</string>
+    <string name="menu_item">Menu Item</string>
+    <string name="read_more">Read More</string>
 
 </resources>

@@ -4,7 +4,8 @@
     android:layout_height="178dp"
     android:orientation="vertical"
     android:background="@drawable/ic_user_background"
-    android:paddingLeft="16dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
     <ImageView
         android:id="@+id/profileImageView"
         android:layout_width="70dp"
