@@ -11,7 +11,6 @@ import android.widget.RemoteViews;
 import com.example.bittu.dipin.service.ApiService;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Implementation of App Widget functionality.
@@ -44,10 +43,7 @@ public class NewsWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // There may be multiple widgets active, so update all of them
-        //TODO: OPTIMISE calling 2nd time after being called by main activity
-        //TODO: FIX Showing content whether user is is signed in or not
-       if(ApiService.ACTION_UPDATE_WIDGET)
+        if(ApiService.ACTION_UPDATE_WIDGET)
         context.startService(new Intent(context, ApiService.class));
     }
 

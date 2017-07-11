@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.transition.TransitionManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -164,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
         sp.registerOnSharedPreferenceChangeListener(this);
-        //TODO: notify after returning from favorites if data changed
     }
 
     @Override
@@ -248,9 +246,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-
-                //TODO: set username at new installation
-                Snackbar.make(mDrawer, "Welcome " + mUsername, Snackbar.LENGTH_LONG).show();
+                Intent i = getBaseContext().getPackageManager()
+                        .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "Please login to continue", Toast.LENGTH_LONG).show();
                 finish();
