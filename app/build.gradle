@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'key0'
             keyPassword 'face@123'
-            storeFile file('$rootdir/dipin.jks')
+            storeFile file("$rootDir/dipin.jks")
             storePassword 'face@123'
         }
     }
