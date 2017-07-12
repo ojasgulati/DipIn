@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void setupDrawer() {
         mDrawerView
-                .addView(new DrawerHeader(this))
+                .addView(new DrawerHeader(this.getApplicationContext()))
                 .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_HOME))
                 .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_PLATFORMS))
                 .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_FAVORITES))
