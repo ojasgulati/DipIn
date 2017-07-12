@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.bittu.dipin.Favorites;
 import com.example.bittu.dipin.Platforms;
@@ -55,38 +54,38 @@ public class DrawerMenuItem {
         switch (mMenuPosition) {
             case DRAWER_MENU_ITEM_HOME:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Home");
+                itemNameTxt.setText(R.string.menu_item_home);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_home_black_18dp));
                 break;
             case DRAWER_MENU_ITEM_PLATFORMS:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Platforms");
+                itemNameTxt.setText(R.string.menu_item_platform);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.icons8_news));
                 break;
             case DRAWER_MENU_ITEM_FAVORITES:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Favorites");
+                itemNameTxt.setText(R.string.menu_item_favorites);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_favorite_black_18dp));
                 break;
             case DRAWER_MENU_ITEM_RATE_US:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Rate Us");
+                itemNameTxt.setText(R.string.menu_item_rate_us);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_star_rate_black_18dp));
                 break;
             case DRAWER_MENU_ITEM_FEEDBACK:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Feedback");
+                itemNameTxt.setText(R.string.menu_item_feedback);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_feedback_black_18dp));
                 break;
             case DRAWER_MENU_ITEM_SHARE_APP:
                 lineBreak.setVisibility(android.view.View.GONE);
-                itemNameTxt.setText("Share App");
+                itemNameTxt.setText(R.string.menu_item_share_app);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_share_black_18dp));
                 break;
             case DRAWER_MENU_ITEM_LOGOUT:
                 lineBreak.setVisibility(android.view.View.GONE);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_exit_to_app_black_18dp));
-                itemNameTxt.setText("Logout");
+                itemNameTxt.setText(R.string.menu_item_logout);
                 break;
             case DRAWER_MENU_ITEM_BREAK:
                 mainView.setBackgroundColor(mContext.getResources().getColor(android.R.color.white));
@@ -96,7 +95,7 @@ public class DrawerMenuItem {
             case DRAWER_MENU_ITEM_SETTINGS:
                 lineBreak.setVisibility(android.view.View.GONE);
                 itemIcon.setImageDrawable(mContext.getDrawable(R.drawable.ic_settings_black_18dp));
-                itemNameTxt.setText("Settings");
+                itemNameTxt.setText(R.string.menu_item_settings);
                 break;
         }
     }
@@ -104,10 +103,6 @@ public class DrawerMenuItem {
     @Click(R.id.mainView)
     private void onMenuItemClick() {
         switch (mMenuPosition) {
-            case DRAWER_MENU_ITEM_HOME:
-                Toast.makeText(mContext, "Profile", Toast.LENGTH_SHORT).show();
-                if (mCallBack != null) mCallBack.onProfileMenuSelected();
-                break;
             case DRAWER_MENU_ITEM_PLATFORMS:
                 mContext.startActivity(new Intent(mContext, Platforms.class));
                 if (mCallBack != null) mCallBack.onRequestMenuSelected();
@@ -115,22 +110,6 @@ public class DrawerMenuItem {
             case DRAWER_MENU_ITEM_FAVORITES:
                 mContext.startActivity(new Intent(mContext, Favorites.class));
                 if (mCallBack != null) mCallBack.onGroupsMenuSelected();
-                break;
-            case DRAWER_MENU_ITEM_RATE_US:
-                Toast.makeText(mContext, "Messages", Toast.LENGTH_SHORT).show();
-                if (mCallBack != null) mCallBack.onMessagesMenuSelected();
-                break;
-            case DRAWER_MENU_ITEM_FEEDBACK:
-                Toast.makeText(mContext, "Notifications", Toast.LENGTH_SHORT).show();
-                if (mCallBack != null) mCallBack.onNotificationsMenuSelected();
-                break;
-            case DRAWER_MENU_ITEM_SHARE_APP:
-                Toast.makeText(mContext, "Settings", Toast.LENGTH_SHORT).show();
-                if (mCallBack != null) mCallBack.onSettingsMenuSelected();
-                break;
-            case DRAWER_MENU_ITEM_LOGOUT:
-                Toast.makeText(mContext, "Terms", Toast.LENGTH_SHORT).show();
-                if (mCallBack != null) mCallBack.onTermsMenuSelected();
                 break;
         }
     }

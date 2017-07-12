@@ -7,26 +7,45 @@
     android:background="@color/colorPrimary"
     tools:context="com.example.bittu.dipin.MainActivity">
 
+
     <android.support.v4.widget.DrawerLayout
         android:id="@+id/drawerLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <com.flipboard.bottomsheet.BottomSheetLayout
-            android:id="@+id/bottomsheet"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-            <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/swiperefresh"
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <com.flipboard.bottomsheet.BottomSheetLayout
+                android:id="@+id/bottomsheet"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/recycler_view"
+
+                <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:id="@+id/swiperefresh"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </android.support.v4.widget.SwipeRefreshLayout>
-        </com.flipboard.bottomsheet.BottomSheetLayout>
+                    android:layout_height="match_parent">
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </android.support.v4.widget.SwipeRefreshLayout>
+
+            </com.flipboard.bottomsheet.BottomSheetLayout>
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?actionBarSize"
+                app:navigationIcon="?homeAsUpIndicator" />
+
+        </FrameLayout>
 
         <FrameLayout
             android:id="@+id/drawerViewLayout"
@@ -42,5 +61,6 @@
                 android:scrollbars="vertical" />
         </FrameLayout>
     </android.support.v4.widget.DrawerLayout>
+
 
 </android.support.design.widget.CoordinatorLayout>

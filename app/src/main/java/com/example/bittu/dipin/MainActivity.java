@@ -22,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -64,7 +65,6 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-import static com.example.bittu.dipin.R.id.drawerView;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     @InjectView(R.id.recycler_view)
@@ -73,12 +73,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     BottomSheetLayout bottomSheet;
     @InjectView(R.id.swiperefresh)
     SwipeRefreshLayout mSwipeRefresh;
-    @InjectView(drawerView)
+    @InjectView(R.id.drawerView)
     PlaceHolderView mDrawerView;
     @InjectView(R.id.drawerLayout)
     DrawerLayout mDrawer;
     @InjectView(R.id.drawerViewLayout)
     FrameLayout mDrawerViewLayout;
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar;
 
 
     private boolean mIsRefreshing = false;
@@ -94,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     public static String mUserEmailId;
     public static String mUsername;
     public static String mUserPic;
+
 
     FirebaseDatabase mDatabase;
     DatabaseReference mDatabaseReference;
@@ -116,8 +119,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         mUserId = ANONYMOUS;
-
         mDatabase = FirebaseDatabase.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
 
@@ -192,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     mUserId = user.getUid().toString();
                     mUserEmailId = user.getEmail().toString();
                     mUsername = user.getDisplayName().toString();
+                    if(user.getPhotoUrl() != null)
                     mUserPic = user.getPhotoUrl().toString();
                 } else {
                     // User is signed out
@@ -224,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
                 .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
 
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer, R.string.open_drawer, R.string.close_drawer) {
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer,toolbar, R.string.open_drawer, R.string.close_drawer) {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
@@ -238,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         mDrawer.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
-
     }
 
     @Override
@@ -251,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
             } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, "Please login to continue", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.login_to_continue, Toast.LENGTH_LONG).show();
                 finish();
             }
         }
@@ -436,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
                     shareIntent.setType("image/*");
 
-                    bottomSheet.showWithSheetView(new IntentPickerSheetView(mContext, shareIntent, "Share with...", new IntentPickerSheetView.OnIntentPickedListener() {
+                    bottomSheet.showWithSheetView(new IntentPickerSheetView(mContext, shareIntent, R.string.article_share, new IntentPickerSheetView.OnIntentPickedListener() {
                         @Override
                         public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
                             bottomSheet.dismissSheet();

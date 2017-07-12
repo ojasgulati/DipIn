@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,8 @@ import butterknife.InjectView;
 public class Platforms extends AppCompatActivity {
     @InjectView(R.id.platform_recycler)
     RecyclerView recyclerView;
+    @InjectView(R.id.platform_toolbar)
+    Toolbar toolbar;
     PlatformsAdapter platformsAdapter;
     List<Website> websites;
 
@@ -30,6 +33,8 @@ public class Platforms extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_platforms);
         ButterKnife.inject(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         websites = new ArrayList<Website>();
         setUpList();
         platformsAdapter = new PlatformsAdapter(this, websites);

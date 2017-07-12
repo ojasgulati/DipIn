@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,6 +57,8 @@ public class Favorites extends AppCompatActivity {
     RecyclerView favRecyclerView;
     @InjectView(R.id.fav_bottomsheet)
     BottomSheetLayout bottomSheet;
+    @InjectView(R.id.favorites_toolbar)
+    Toolbar toolbar;
     private Animation animationUp, animationDown;
 
     public static boolean NOTIFY;
@@ -72,6 +75,8 @@ public class Favorites extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
         ButterKnife.inject(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         NOTIFY = false;
         mDatabase = FirebaseDatabase.getInstance();
         mReference = mDatabase.getReference().child(mUserId);
@@ -266,7 +271,7 @@ public class Favorites extends AppCompatActivity {
                     shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
                     shareIntent.setType("image/*");
 
-                    bottomSheet.showWithSheetView(new IntentPickerSheetView(mContext, shareIntent, "Share with...", new IntentPickerSheetView.OnIntentPickedListener() {
+                    bottomSheet.showWithSheetView(new IntentPickerSheetView(mContext, shareIntent, getString(R.string.article_share), new IntentPickerSheetView.OnIntentPickedListener() {
                         @Override
                         public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
                             bottomSheet.dismissSheet();

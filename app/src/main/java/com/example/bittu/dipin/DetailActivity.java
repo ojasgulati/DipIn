@@ -33,7 +33,6 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
         ButterKnife.inject(this);
         news = ApiService.newsList();
-
         final News currentNews = news.get(getIntent().getIntExtra(getString(R.string.intent_position_detail), -1));
         Log.i(LOG_TAG,currentNews.getUrl());
         WebSettings webSettings = webView.getSettings();

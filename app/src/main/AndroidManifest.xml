@@ -28,13 +28,16 @@
 
         <activity
             android:name=".DetailActivity"
-            android:theme="@style/detailTheme" />
+            android:theme="@style/detailTheme"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".Favorites"
-            android:theme="@style/detailTheme" />
+            android:theme="@style/detailTheme"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".Platforms"
-            android:theme="@style/detailTheme" />
+            android:theme="@style/detailTheme"
+            android:parentActivityName=".MainActivity"/>
 
         <receiver android:name=".NewsWidget">
             <intent-filter>
