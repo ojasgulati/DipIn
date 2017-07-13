@@ -219,16 +219,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void setupDrawer() {
         mDrawerView
-                .addView(new DrawerHeader(this.getApplicationContext()))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_HOME))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_PLATFORMS))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_FAVORITES))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_BREAK))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_RATE_US))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_FEEDBACK))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_SHARE_APP))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
-                .addView(new DrawerMenuItem(this.getApplicationContext(), DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
+                .addView(new DrawerHeader(this))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_HOME))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_PLATFORMS))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_FAVORITES))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_BREAK))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_RATE_US))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_FEEDBACK))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SHARE_APP))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
 
         ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer,toolbar, R.string.open_drawer, R.string.close_drawer) {
             @Override
