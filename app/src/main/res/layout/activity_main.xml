@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="com.example.bittu.dipin.MainActivity">
+    tools:context="com.example.bittu.dipin.mainUi.MainActivity">
 
 
     <android.support.v4.widget.DrawerLayout
@@ -15,36 +15,26 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-
-            <com.flipboard.bottomsheet.BottomSheetLayout
-                android:id="@+id/bottomsheet"
+            <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/swiperefresh"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-
-                <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                    android:id="@+id/swiperefresh"
+                <com.example.bittu.dipin.VerticalViewPager
+                    android:id="@+id/vertical_view_pager"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent" />
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recycler_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+            </android.support.v4.widget.SwipeRefreshLayout>
 
-                </android.support.v4.widget.SwipeRefreshLayout>
-
-            </com.flipboard.bottomsheet.BottomSheetLayout>
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?actionBarSize"
                 app:navigationIcon="?homeAsUpIndicator" />
-
         </FrameLayout>
 
         <FrameLayout

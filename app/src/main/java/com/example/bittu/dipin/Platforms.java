@@ -141,7 +141,6 @@ public class Platforms extends AppCompatActivity {
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString(getString(R.string.pref_shared_platform), baseUrl);
                     editor.commit();
-
                     Log.i("URL", sharedPref.getString(getString(R.string.pref_shared_platform), "Null"));
                     finish();
                 }

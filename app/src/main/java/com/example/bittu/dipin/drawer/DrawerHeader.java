@@ -6,7 +6,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.example.bittu.dipin.MainActivity;
+import com.example.bittu.dipin.mainUi.MainActivity;
 import com.example.bittu.dipin.R;
 import com.example.bittu.dipin.RoundImageTransform;
 import com.mindorks.placeholderview.annotations.Layout;

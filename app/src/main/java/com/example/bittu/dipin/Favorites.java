@@ -49,7 +49,7 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-import static com.example.bittu.dipin.MainActivity.mUserId;
+import static com.example.bittu.dipin.mainUi.MainActivity.mUserId;
 
 
 public class Favorites extends AppCompatActivity {

@@ -11,7 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
         <activity
-            android:name=".MainActivity"
+            android:name=".mainUi.MainActivity"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,15 +29,15 @@
         <activity
             android:name=".DetailActivity"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".mainUi.MainActivity"/>
         <activity
             android:name=".Favorites"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".mainUi.MainActivity"/>
         <activity
             android:name=".Platforms"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".mainUi.MainActivity"/>
 
         <receiver android:name=".NewsWidget">
             <intent-filter>
