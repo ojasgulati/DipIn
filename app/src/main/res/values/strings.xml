@@ -86,4 +86,9 @@
     <string name="article_share">Share with...</string>
     <string name="login_to_continue">Please login to continue</string>
 
+    <string name="no_connection">No Internet Connection</string>
+
+    <string name="main_ad_unit_id">ca-app-pub-1205687093418675/6000748830</string>
+    <string name="fav_ad_unit_id">ca-app-pub-1205687093418675/1920713655</string>
+
 </resources>

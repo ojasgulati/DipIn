@@ -23,6 +23,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -74,6 +75,8 @@ public class ItemFragment extends Fragment {
     ImageView share;
     @InjectView(R.id.bottomsheet)
     BottomSheetLayout bottomSheet;
+    @InjectView(R.id.image_loading)
+    ProgressBar imageProgress;
 
     private Animation animationUp, animationDown;
     DatabaseReference mDatabaseReference;
@@ -90,9 +93,18 @@ public class ItemFragment extends Fragment {
 
 
     public static Fragment newInstance(int position) {
+        int positionNo = position;
+        if (positionNo == 10){
+            positionNo =3;
+        }else if(positionNo == 11){
+            positionNo = 6;
+        }else if(positionNo == 12){
+            positionNo = 9;
+        }
+
         Bundle arguments = new Bundle();
         ItemFragment fragment = new ItemFragment();
-        arguments.putInt(mPosition, position);
+        arguments.putInt(mPosition, positionNo);
         fragment.setArguments(arguments);
         return fragment;
     }
@@ -123,8 +135,14 @@ public class ItemFragment extends Fragment {
             date.setText(currentNews.getDate());
         if (!currentNews.getImgUrl().equals("null")) {
             setUpImage(currentNews);
-        } else
+        } else {
             image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
+            imageProgress.setVisibility(View.GONE);
+            title.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            listItemLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            textLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            date.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        }
 
         detail.setVisibility(View.GONE);
         textLayout.setOnClickListener(new View.OnClickListener() {
@@ -257,6 +275,7 @@ public class ItemFragment extends Fragment {
 
                     @Override
                     public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                        imageProgress.setVisibility(View.GONE);
                         Bitmap bitmap = ((GlideBitmapDrawable) resource.getCurrent()).getBitmap();
                         Palette.generateAsync(bitmap, new Palette.PaletteAsyncListener() {
                             public void onGenerated(Palette palette) {

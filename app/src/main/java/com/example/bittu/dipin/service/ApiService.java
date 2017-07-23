@@ -3,7 +3,6 @@ package com.example.bittu.dipin.service;
 import android.app.IntentService;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,8 +12,6 @@ import android.util.Log;
 import com.example.bittu.dipin.News;
 import com.example.bittu.dipin.NewsWidget;
 import com.example.bittu.dipin.R;
-import com.example.bittu.dipin.StackRemoteViewsFactory;
-import com.example.bittu.dipin.StackRemoteViewsService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,8 +19,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.R.attr.action;
 
 
 public class ApiService extends IntentService {

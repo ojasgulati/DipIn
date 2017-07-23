@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -21,6 +23,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bittu.dipin.R;
@@ -38,7 +43,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class MainActivity extends AppCompatActivity  implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     @InjectView(R.id.swiperefresh)
     SwipeRefreshLayout mSwipeRefresh;
@@ -52,6 +57,12 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
     Toolbar toolbar;
     @InjectView(R.id.vertical_view_pager)
     com.example.bittu.dipin.VerticalViewPager verticalViewPager;
+    @InjectView(R.id.gif_layout)
+    LinearLayout gifLayout;
+    @InjectView(R.id.error_emptyView_image)
+    ImageView emptyViewImage;
+    @InjectView(R.id.error_emptyView_text)
+    TextView emptyViewText;
 
     private boolean doNotifyDataSetChangedOnce = false;
     private boolean mIsRefreshing = false;
@@ -66,7 +77,7 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
     public static String mUsername;
     public static String mUserPic;
 
-
+    boolean networkAvailable;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     FirebaseUser user;
@@ -94,6 +105,9 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         mUserId = ANONYMOUS;
 
+        emptyViewImage.setVisibility(View.GONE);
+        emptyViewText.setVisibility(View.GONE);
+
         mFirebaseAuth = FirebaseAuth.getInstance();
 
         startService(new Intent(this, ApiService.class));
@@ -101,6 +115,14 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
         mSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                networkAvailable = isNetworkAvailable(MainActivity.this);
+                if (!networkAvailable) {
+                    emptyViewImage.setVisibility(View.VISIBLE);
+                    emptyViewText.setVisibility(View.VISIBLE);
+                    emptyViewText.setText(getString(R.string.no_connection));
+                    gifLayout.setVisibility(View.GONE);
+                    mSwipeRefresh.setRefreshing(false);
+                }
                 startService(new Intent(MainActivity.this, ApiService.class));
             }
         });
@@ -134,11 +156,18 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
     protected void onResume() {
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+        networkAvailable = isNetworkAvailable(this);
+        if (!networkAvailable) {
+            emptyViewImage.setVisibility(View.VISIBLE);
+            emptyViewText.setVisibility(View.VISIBLE);
+            emptyViewText.setText(getString(R.string.no_connection));
+            gifLayout.setVisibility(View.GONE);
+        }
 
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
         sp.registerOnSharedPreferenceChangeListener(this);
 
-        if(doNotifyDataSetChangedOnce) {
+        if (doNotifyDataSetChangedOnce) {
             mPagerAdapter.notifyDataSetChanged();
         }
 
@@ -155,12 +184,15 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
     public void updateUI() {
         mSwipeRefresh.setRefreshing(mIsRefreshing);
         if (!mIsRefreshing) {
+            gifLayout.setVisibility(View.GONE);
             mPagerAdapter = new NewsPagerAdapter(getSupportFragmentManager());
             verticalViewPager.setAdapter(mPagerAdapter);
             doNotifyDataSetChangedOnce = true;
+
         } else {
             Log.i("mIsRefreshing", "false");
         }
+
 
     }
 
@@ -194,6 +226,15 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
 
     }
 
+    static public boolean isNetworkAvailable(Context c) {
+        ConnectivityManager cm =
+                (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+    }
+
     private void setupDrawer() {
         mDrawerView
                 .addView(new DrawerHeader(this))
@@ -207,9 +248,9 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
                 .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
                 .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
 
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.open_drawer, R.string.close_drawer) {
+        final ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.open_drawer, R.string.close_drawer) {
             @Override
-            public void onDrawerOpened(View drawerView) {
+            public void onDrawerOpened(final View drawerView) {
                 super.onDrawerOpened(drawerView);
             }
 
@@ -248,6 +289,7 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
         }
     }
 
+
     public class NewsPagerAdapter extends FragmentStatePagerAdapter {
 
 
@@ -259,15 +301,19 @@ public class MainActivity extends AppCompatActivity  implements SharedPreference
 
         @Override
         public int getCount() {
-            return (ApiService.newsList().size() != 0) ? ApiService.newsList().size() : 0;
+            return (ApiService.newsList().size() != 0) ? ApiService.newsList().size() + 3 : 0;
         }
 
         @Override
         public Fragment getItem(int position) {
+            if (position % 3 == 0 && position != 0 && position <10 )
+                return AdFragment.newInstance();
+
             return ItemFragment.newInstance(position);
         }
+
         @Override
-        public int getItemPosition(Object object){
+        public int getItemPosition(Object object) {
             return PagerAdapter.POSITION_NONE;
         }
 

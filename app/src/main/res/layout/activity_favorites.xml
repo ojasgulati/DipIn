@@ -29,13 +29,27 @@
             android:id="@+id/favorites_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
-            app:navigationIcon="?homeAsUpIndicator">
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="180dp"
-            android:src="@drawable/logo" />
-        </android.support.v7.widget.Toolbar>
+            app:navigationIcon="?homeAsUpIndicator"/>
     </android.support.design.widget.AppBarLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/fav_error_emptyView_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/newspaper_error" />
+
+        <TextView
+            android:id="@+id/fav_error_emptyView_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

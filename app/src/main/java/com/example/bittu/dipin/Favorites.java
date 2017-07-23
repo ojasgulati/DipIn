@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -18,10 +20,14 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -59,6 +65,10 @@ public class Favorites extends AppCompatActivity {
     BottomSheetLayout bottomSheet;
     @InjectView(R.id.favorites_toolbar)
     Toolbar toolbar;
+    @InjectView(R.id.fav_error_emptyView_image)
+    ImageView emptyViewImage;
+    @InjectView(R.id.fav_error_emptyView_text)
+    TextView emptyViewText;
     private Animation animationUp, animationDown;
 
     public static boolean NOTIFY;
@@ -70,9 +80,14 @@ public class Favorites extends AppCompatActivity {
 
     private static final String LOG_TAG = "FAVORITES";
 
+    boolean networkAvailable;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_favorites);
         ButterKnife.inject(this);
         setSupportActionBar(toolbar);
@@ -82,19 +97,60 @@ public class Favorites extends AppCompatActivity {
         mReference = mDatabase.getReference().child(mUserId);
         animationUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_up);
         animationDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
-        favRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        attachDatabaseListener();
+        networkAvailable = isNetworkAvailable(this);
+        if (!networkAvailable) {
+            emptyViewImage.setVisibility(View.VISIBLE);
+            emptyViewText.setVisibility(View.VISIBLE);
+            emptyViewText.setText(getString(R.string.no_connection));
+
+        } else {
+            emptyViewImage.setVisibility(View.GONE);
+            emptyViewText.setVisibility(View.GONE);
+            favRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        }
 
 
     }
 
+
+
+    static public boolean isNetworkAvailable(Context c) {
+        ConnectivityManager cm =
+                (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+    }
+
+    @Override
+    protected void onResume() {
+        if (networkAvailable) {
+            attachDatabaseListener();
+        }
+        super.onResume();
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mReference.removeEventListener(mEventListener);
+        if (networkAvailable) {
+            mReference.removeEventListener(mEventListener);
+        }
     }
 
+
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
 
     public void attachDatabaseListener() {
@@ -159,7 +215,7 @@ public class Favorites extends AppCompatActivity {
             @InjectView(R.id.fav_image)
             ImageView image;
             @InjectView(R.id.fav_list_item_layout)
-            LinearLayout listItemLayout;
+            FrameLayout listItemLayout;
             @InjectView(R.id.fav_text_layout)
             LinearLayout textLayout;
             @InjectView(R.id.fav_detail)
@@ -191,14 +247,13 @@ public class Favorites extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(final FavViewHolder holder,int position) {
+        public void onBindViewHolder(final FavViewHolder holder, int position) {
             final News currentNews = mNews.get(position);
             holder.title.setText(currentNews.getHeadline());
             holder.date.setText(currentNews.getDate());
             setUpImage(currentNews, holder);
 
             holder.detail.setVisibility(View.GONE);
-
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -213,12 +268,14 @@ public class Favorites extends AppCompatActivity {
                             @Override
                             public void onFinish() {
                                 holder.detail.setVisibility(View.GONE);
+                                holder.image.setVisibility(View.GONE);
                                 TransitionManager.beginDelayedTransition(favRecyclerView);
                             }
                         };
                         countDownTimerStatic.start();
                     } else {
                         holder.detail.setVisibility(View.VISIBLE);
+                        holder.image.setVisibility(View.VISIBLE);
                         holder.detail.startAnimation(animationDown);
                         TransitionManager.beginDelayedTransition(favRecyclerView);
                     }
@@ -236,7 +293,7 @@ public class Favorites extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     int newPosition = holder.getAdapterPosition();
-                    String formatedHeadline = currentNews.getHeadline().replace("$","").replace(".","").replace("#","").replace("[","").replace("]","");
+                    String formatedHeadline = currentNews.getHeadline().replace("$", "").replace(".", "").replace("#", "").replace("[", "").replace("]", "");
                     mReference = mDatabase.getReference().child(mUserId).child(formatedHeadline);
                     mReference.removeValue();
                     mNews.remove(newPosition);
@@ -311,6 +368,7 @@ public class Favorites extends AppCompatActivity {
                                     holder.listItemLayout.setBackgroundColor(darkMutedColor);
                                     holder.textLayout.setBackgroundColor(darkMutedColor);
                                     holder.date.setBackgroundColor(darkMutedColor);
+                                    holder.image.setVisibility(View.GONE);
 
 
                                 }

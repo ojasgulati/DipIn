@@ -8,6 +8,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.example.bittu.dipin.service.ApiService;
@@ -22,6 +23,8 @@ public class DetailActivity extends AppCompatActivity {
     WebView webView;
     @InjectView(R.id.progressBar1)
     ProgressBar progressBar;
+    @InjectView(R.id.news_gif)
+    LinearLayout newsGif;
 
     List<News> news;
 
@@ -44,6 +47,7 @@ public class DetailActivity extends AppCompatActivity {
                 progressBar.setProgress(newProgress);
 
                 if(newProgress == 100){
+                    newsGif.setVisibility(View.GONE);
                     progressBar.setVisibility(View.GONE);
                 }
             }
