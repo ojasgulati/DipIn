@@ -11,13 +11,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -33,6 +34,9 @@ import com.example.bittu.dipin.drawer.DrawerHeader;
 import com.example.bittu.dipin.drawer.DrawerMenuItem;
 import com.example.bittu.dipin.service.ApiService;
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.mindorks.placeholderview.PlaceHolderView;
@@ -41,13 +45,16 @@ import java.util.Arrays;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import me.relex.circleindicator.CircleIndicator;
+
+import static com.example.bittu.dipin.R.id.drawerView;
 
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     @InjectView(R.id.swiperefresh)
     SwipeRefreshLayout mSwipeRefresh;
-    @InjectView(R.id.drawerView)
+    @InjectView(drawerView)
     PlaceHolderView mDrawerView;
     @InjectView(R.id.drawerLayout)
     DrawerLayout mDrawer;
@@ -63,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     ImageView emptyViewImage;
     @InjectView(R.id.error_emptyView_text)
     TextView emptyViewText;
+    @InjectView(R.id.indicator)
+    CircleIndicator indicator;
 
     private boolean doNotifyDataSetChangedOnce = false;
     private boolean mIsRefreshing = false;
@@ -105,8 +114,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         mUserId = ANONYMOUS;
 
-        emptyViewImage.setVisibility(View.GONE);
-        emptyViewText.setVisibility(View.GONE);
+        removeEmptyViewText();
 
         mFirebaseAuth = FirebaseAuth.getInstance();
 
@@ -117,18 +125,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             public void onRefresh() {
                 networkAvailable = isNetworkAvailable(MainActivity.this);
                 if (!networkAvailable) {
-                    emptyViewImage.setVisibility(View.VISIBLE);
-                    emptyViewText.setVisibility(View.VISIBLE);
-                    emptyViewText.setText(getString(R.string.no_connection));
-                    gifLayout.setVisibility(View.GONE);
+                    setEmptyViewText();
                     mSwipeRefresh.setRefreshing(false);
                 }
                 startService(new Intent(MainActivity.this, ApiService.class));
             }
         });
-
         userAuth();
         setupDrawer();
+        adLoad();
 
     }
 
@@ -137,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onDestroy();
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
         sp.unregisterOnSharedPreferenceChangeListener(this);
+
+        ApiService.clearNewsList();
     }
 
     @Override
@@ -152,16 +159,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         unregisterReceiver(viewUpdate);
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         networkAvailable = isNetworkAvailable(this);
         if (!networkAvailable) {
-            emptyViewImage.setVisibility(View.VISIBLE);
-            emptyViewText.setVisibility(View.VISIBLE);
-            emptyViewText.setText(getString(R.string.no_connection));
-            gifLayout.setVisibility(View.GONE);
+           setEmptyViewText();
         }
 
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
@@ -181,20 +186,61 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                Intent i = getBaseContext().getPackageManager()
+                        .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, R.string.login_to_continue, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if (s.equals(getString(R.string.pref_shared_platform))) {
+            gifLayout.setVisibility(View.VISIBLE);
+            ApiService.clearNewsList();
+            startService(new Intent(this, ApiService.class));
+            adLoad();
+            Log.i("TAG", sharedPreferences.getString(getString(R.string.pref_shared_platform), "URL NULL"));
+        }
+    }
+
     public void updateUI() {
         mSwipeRefresh.setRefreshing(mIsRefreshing);
         if (!mIsRefreshing) {
             gifLayout.setVisibility(View.GONE);
             mPagerAdapter = new NewsPagerAdapter(getSupportFragmentManager());
             verticalViewPager.setAdapter(mPagerAdapter);
+            indicator.setViewPager(verticalViewPager);
             doNotifyDataSetChangedOnce = true;
 
         } else {
+            gifLayout.setVisibility(View.VISIBLE);
             Log.i("mIsRefreshing", "false");
         }
-
-
     }
+
+    public void removeEmptyViewText() {
+        emptyViewImage.setVisibility(View.GONE);
+        emptyViewText.setVisibility(View.GONE);
+    }
+
+
+    public void setEmptyViewText(){
+        emptyViewImage.setVisibility(View.VISIBLE);
+        emptyViewText.setVisibility(View.VISIBLE);
+        emptyViewText.setText(getString(R.string.no_connection));
+        gifLayout.setVisibility(View.GONE);
+    }
+
 
     private void userAuth() {
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
@@ -211,14 +257,22 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 } else {
                     // User is signed out
                     mUserId = ANONYMOUS;
-                    startActivityForResult(
-                            AuthUI.getInstance()
-                                    .createSignInIntentBuilder()
-                                    .setIsSmartLockEnabled(false)
-                                    .setAvailableProviders(
-                                            Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()))
-                                    .build(),
-                            RC_SIGN_IN);
+                    networkAvailable = isNetworkAvailable(MainActivity.this);
+                    if (networkAvailable) {
+                        startActivityForResult(
+                                AuthUI.getInstance()
+                                        .createSignInIntentBuilder()
+                                        .setIsSmartLockEnabled(false)
+                                        .setLogo(R.mipmap.ic_launcher)
+                                        .setTheme(R.style.FullscreenTheme)
+                                        .setAllowNewEmailAccounts(true)
+                                        .setAvailableProviders(
+                                                Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
+                                                )
+                                        )
+                                        .build(),
+                                RC_SIGN_IN);
+                    }
                 }
             }
         };
@@ -226,14 +280,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     }
 
-    static public boolean isNetworkAvailable(Context c) {
-        ConnectivityManager cm =
-                (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
-    }
 
     private void setupDrawer() {
         mDrawerView
@@ -264,33 +310,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         drawerToggle.syncState();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
-            if (resultCode == RESULT_OK) {
-                Intent i = getBaseContext().getPackageManager()
-                        .getLaunchIntentForPackage(getBaseContext().getPackageName());
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(i);
-            } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, R.string.login_to_continue, Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-        if (s.equals(getString(R.string.pref_shared_platform))) {
-            mSwipeRefresh.setRefreshing(true);
-            startService(new Intent(this, ApiService.class));
-            Log.i("TAG", sharedPreferences.getString(getString(R.string.pref_shared_platform), "URL NULL"));
-        }
-    }
-
-
-    public class NewsPagerAdapter extends FragmentStatePagerAdapter {
+    public class NewsPagerAdapter extends FragmentPagerAdapter {
 
 
         public NewsPagerAdapter(FragmentManager fm) {
@@ -301,15 +322,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         @Override
         public int getCount() {
-            return (ApiService.newsList().size() != 0) ? ApiService.newsList().size() + 3 : 0;
+            return (ApiService.newsList().size() != 0) ? ApiService.newsList().size() : 0;
         }
 
         @Override
         public Fragment getItem(int position) {
-            if (position % 3 == 0 && position != 0 && position <10 )
+            if (ApiService.newsList().get(position).getHeadline() == null) {
                 return AdFragment.newInstance();
-
+            }
             return ItemFragment.newInstance(position);
+
         }
 
         @Override
@@ -317,5 +339,38 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             return PagerAdapter.POSITION_NONE;
         }
 
+    }
+
+
+    static public boolean isNetworkAvailable(Context c) {
+        ConnectivityManager cm =
+                (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+    }
+
+    public void adLoad(){
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+        int height = (int) AdFragment.convertPixelsToDp(metrics.heightPixels, this);
+
+        AdView adView = new AdView(this);
+        Log.i("Width", Integer.toString(height));
+        AdSize adSize = new AdSize(-1, height);
+        adView.setAdSize(adSize);
+        adView.setAdUnitId(getString(R.string.main_ad_unit_id));
+
+
+        // Initiate a generic request to load it with an ad
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                .build();
+        adView.loadAd(adRequest);
+
+        Log.e("Loading Ads","Ads");
     }
 }

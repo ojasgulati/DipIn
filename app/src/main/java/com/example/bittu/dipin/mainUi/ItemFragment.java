@@ -44,9 +44,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -61,6 +66,8 @@ public class ItemFragment extends Fragment {
     TextView date;
     @InjectView(R.id.image)
     ImageView image;
+    @InjectView(R.id.image_blurred)
+    ImageView imageBlurred;
     @InjectView(R.id.list_item_layout)
     FrameLayout listItemLayout;
     @InjectView(R.id.text_layout)
@@ -77,6 +84,8 @@ public class ItemFragment extends Fragment {
     BottomSheetLayout bottomSheet;
     @InjectView(R.id.image_loading)
     ProgressBar imageProgress;
+    @InjectView(R.id.content_layout)
+    LinearLayout contentLayout;
 
     private Animation animationUp, animationDown;
     DatabaseReference mDatabaseReference;
@@ -94,14 +103,6 @@ public class ItemFragment extends Fragment {
 
     public static Fragment newInstance(int position) {
         int positionNo = position;
-        if (positionNo == 10){
-            positionNo =3;
-        }else if(positionNo == 11){
-            positionNo = 6;
-        }else if(positionNo == 12){
-            positionNo = 9;
-        }
-
         Bundle arguments = new Bundle();
         ItemFragment fragment = new ItemFragment();
         arguments.putInt(mPosition, positionNo);
@@ -128,20 +129,39 @@ public class ItemFragment extends Fragment {
         List<News> mNews = ApiService.newsList();
 
         final News currentNews = mNews.get(mCurrentPosition);
-        Log.i("Author",currentNews.getHeadline());
+        Log.i("Author", currentNews.getHeadline());
         if (!currentNews.getHeadline().equals("null"))
             title.setText(currentNews.getHeadline());
-        if (!currentNews.getDate().equals("null"))
-            date.setText(currentNews.getDate());
+        if (!currentNews.getDate().equals("null")) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            try {
+                Date dtIn = simpleDateFormat.parse(currentNews.getDate());
+                Log.i("Time", Long.toString(dtIn.getTime()));
+
+                String dateFormated = printDifference(dtIn);
+                if (dateFormated == null) {
+                    date.setText(currentNews.getAuthor());
+                } else {
+                    date.setText(dateFormated + " - " + currentNews.getAuthor());
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+        } else if (!(currentNews.getAuthor().equals("null") || currentNews.getAuthor().equals(""))) {
+            date.setText(currentNews.getAuthor());
+        } else {
+            date.setVisibility(View.GONE);
+        }
+
+
         if (!currentNews.getImgUrl().equals("null")) {
             setUpImage(currentNews);
         } else {
             image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
             imageProgress.setVisibility(View.GONE);
-            title.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-            listItemLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-            textLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-            date.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            contentLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
         }
 
         detail.setVisibility(View.GONE);
@@ -233,7 +253,7 @@ public class ItemFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 intent.putExtra(getActivity().getString(R.string.intent_position_detail), mCurrentPosition);
                 getActivity().startActivity(intent);
-               getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
             }
         });
 
@@ -254,6 +274,8 @@ public class ItemFragment extends Fragment {
                         startActivity(activityInfo.getConcreteIntent(shareIntent));
                     }
                 }));
+
+
             }
         });
 
@@ -261,12 +283,55 @@ public class ItemFragment extends Fragment {
 
     }
 
+    public String printDifference(Date startDate) {
+        //milliseconds
+        Calendar c = Calendar.getInstance();
+        int current_date = c.get(Calendar.HOUR_OF_DAY);
+
+        long different = -current_date + startDate.getTime();
+
+
+        long secondsInMilli = 1000;
+        long minutesInMilli = secondsInMilli * 60;
+        long hoursInMilli = minutesInMilli * 60;
+        long daysInMilli = hoursInMilli * 24;
+
+        long elapsedDays = different / daysInMilli;
+        different = different % daysInMilli;
+
+        long elapsedHours = different / hoursInMilli;
+        different = different % hoursInMilli;
+
+        long elapsedMinutes = different / minutesInMilli;
+        different = different % minutesInMilli;
+
+        long elapsedSeconds = different / secondsInMilli;
+
+        String dateFormated;
+        if (elapsedHours > 0) {
+            dateFormated = getString(R.string.time_hours, Long.toString(elapsedHours));
+        } else if (elapsedMinutes > 0) {
+            dateFormated = getString(R.string.time_minutes, Long.toString(elapsedMinutes));
+        } else {
+            dateFormated = null;
+        }
+        return dateFormated;
+    }
+
+    private byte[] bitmapToByte(Bitmap bitmap){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        return byteArray;
+    }
+
     private void setUpImage(News currentNews) {
+
         Glide.with(getActivity())
                 .load(currentNews.getImgUrl().toString())
-                .fitCenter()
-                .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .dontAnimate()
+                .override(200,200)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
                     public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
@@ -274,27 +339,44 @@ public class ItemFragment extends Fragment {
                     }
 
                     @Override
-                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    public boolean onResourceReady(final GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
                         imageProgress.setVisibility(View.GONE);
-                        Bitmap bitmap = ((GlideBitmapDrawable) resource.getCurrent()).getBitmap();
-                        Palette.generateAsync(bitmap, new Palette.PaletteAsyncListener() {
-                            public void onGenerated(Palette palette) {
-                                int defaultColor = 0xFF333333;
-                                int darkMutedColor = palette.getDarkMutedColor(defaultColor);
-                                title.setBackgroundColor(darkMutedColor);
-                                listItemLayout.setBackgroundColor(darkMutedColor);
-                               textLayout.setBackgroundColor(darkMutedColor);
-                                date.setBackgroundColor(darkMutedColor);
+
+                        if (resource instanceof GlideBitmapDrawable) {
+                            final Bitmap bitmap = ((GlideBitmapDrawable) resource.getCurrent()).getBitmap();
 
 
-                            }
-                        });
+                            Glide.with(getActivity())
+                                    .load(bitmapToByte(bitmap))
+                                    .bitmapTransform(new jp.wasabeef.glide.transformations.BlurTransformation(getActivity(), 50))
+                                    .dontAnimate()
+                                    .into(imageBlurred);
+
+                            Palette.generateAsync(bitmap, new Palette.PaletteAsyncListener() {
+                                public void onGenerated(Palette palette) {
+                                    int defaultColor = 0xFF333333;
+                                    int darkMutedColor = palette.getDarkMutedColor(defaultColor);
+                                    contentLayout.setBackgroundColor(darkMutedColor);
+
+                                }
+                            });
+                        } else {
+
+                            int defaultColor = getResources().getColor(R.color.colorPrimaryDark);
+                            title.setBackgroundColor(defaultColor);
+                            listItemLayout.setBackgroundColor(defaultColor);
+                            textLayout.setBackgroundColor(defaultColor);
+                            date.setBackgroundColor(defaultColor);
+
+
+                        }
 
                         return false;
                     }
+
                 })
                 .into(image);
-        image.setAdjustViewBounds(true);
+
 
     }
 

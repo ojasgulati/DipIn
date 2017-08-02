@@ -32,7 +32,7 @@ public class VerticalViewPager extends ViewPager {
         // Make page transit vertical
         setPageTransformer(true, new VerticalPageTransformer());
         // Get rid of the overscroll drawing that happens on the left and right (the ripple)
-        setOverScrollMode(View.OVER_SCROLL_NEVER);
+        setOverScrollMode(View.SCROLL_AXIS_VERTICAL);
     }
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -60,7 +60,8 @@ public class VerticalViewPager extends ViewPager {
         @Override
         public void transformPage(View view, float position) {
             view.setTranslationX(view.getWidth() * -position);
-            view.setTranslationY(position < 0 ? position * view.getHeight() : 0f);
+            view.setTranslationY(position < 0 ? position  * view.getHeight() : 0f);
+
         }
 
         }

@@ -14,15 +14,21 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
             <ImageView
-                android:id="@+id/image"
+                android:id="@+id/image_blurred"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginBottom="100dp"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/content_headline_image"
                 android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="100dp"
+                android:contentDescription="@string/content_headline_image" />
 
             <ProgressBar
                 android:id="@+id/image_loading"
@@ -34,10 +40,12 @@
         </FrameLayout>
 
         <LinearLayout
+            android:id="@+id/content_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/colorPrimaryDark">
 
             <LinearLayout
                 android:id="@+id/text_layout"
@@ -116,7 +124,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:contentDescription="@string/content_share"
-                    android:src="@android:drawable/ic_menu_share" />
+                    android:src="@drawable/ic_share_black_18px" />
 
             </LinearLayout>
         </LinearLayout>

@@ -12,6 +12,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.example.bittu.dipin.service.ApiService;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 
 import java.util.List;
 
@@ -30,6 +33,8 @@ public class DetailActivity extends AppCompatActivity {
 
     final static String LOG_TAG = "DetailActivity";
 
+    InterstitialAd mInterstitialAd;
+    private boolean isAdLoaded = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,22 +42,60 @@ public class DetailActivity extends AppCompatActivity {
         ButterKnife.inject(this);
         news = ApiService.newsList();
         final News currentNews = news.get(getIntent().getIntExtra(getString(R.string.intent_position_detail), -1));
-        Log.i(LOG_TAG,currentNews.getUrl());
+        Log.i(LOG_TAG, currentNews.getUrl());
         WebSettings webSettings = webView.getSettings();
         webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient(){
 
-            public void onProgressChanged(WebView webView1, int newProgress){
+        webSettings.setJavaScriptEnabled(true);
+        webView.loadUrl(currentNews.getUrl());
+        webView.setWebChromeClient(new WebChromeClient() {
+
+            public void onProgressChanged(WebView webView1, int newProgress) {
 
                 progressBar.setProgress(newProgress);
 
-                if(newProgress == 100){
+                if (newProgress >= 25) {
                     newsGif.setVisibility(View.GONE);
+                }
+
+                if (newProgress >= 99) {
                     progressBar.setVisibility(View.GONE);
+                }
+
+                if(newProgress >= 25){
+                    if(!isAdLoaded) {
+                        isAdLoaded = true;
+                        mInterstitialAd = new InterstitialAd(DetailActivity.this);
+
+                        // set the ad unit ID
+                        mInterstitialAd.setAdUnitId(getString(R.string.detail_ad_unit_id));
+
+                        AdRequest adRequest = new AdRequest.Builder()
+                                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                                .build();
+
+                        // Load ads into Interstitial Ads
+                        mInterstitialAd.loadAd(adRequest);
+                        Log.e("Interstiaital ad", "Loading Inter Ad");
+                    }
                 }
             }
         });
-        webSettings.setJavaScriptEnabled(true);
-        webView.loadUrl(currentNews.getUrl());
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+            mInterstitialAd.setAdListener(new AdListener() {
+                @Override
+                public void onAdClosed() {
+                    super.onAdClosed();
+                    finish();
+                }
+            });
+        } else {
+            super.onBackPressed();
+        }
     }
 }

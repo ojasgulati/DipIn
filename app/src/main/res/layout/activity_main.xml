@@ -51,16 +51,17 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
+
             <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/swiperefresh"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
 
                 <com.example.bittu.dipin.VerticalViewPager
                     android:id="@+id/vertical_view_pager"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
-
             </android.support.v4.widget.SwipeRefreshLayout>
 
 
@@ -69,6 +70,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="?actionBarSize"
                 app:navigationIcon="?homeAsUpIndicator" />
+
+            <me.relex.circleindicator.CircleIndicator
+                android:id="@+id/indicator"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:paddingBottom="50dp"
+                app:ci_orientation="vertical" />
         </FrameLayout>
 
         <FrameLayout

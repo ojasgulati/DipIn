@@ -37,7 +37,6 @@ public class ApiService extends IntentService {
     }
 
 
-
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
@@ -57,6 +56,9 @@ public class ApiService extends IntentService {
             }
 
             for (int i = 0; i < array.length(); i++) {
+                if (i % 3 == 0 && i != 0) {
+                  mNews.add(new News());
+                }
                 JSONObject article = array.getJSONObject(i);
                 String headline = article.getString("title");
                 String date = article.getString("publishedAt");
@@ -65,8 +67,17 @@ public class ApiService extends IntentService {
                 String description = article.getString("description");
                 String url = article.getString("url");
                 mNews.add(new News(headline, date, imgUrl, description, author, url));
-                Log.i(LOG_TAG, headline);
+//                Log.i(LOG_TAG+i, headline);
             }
+
+//            for (int i = 0; i<mNews.size() ;i++){
+//                if(mNews.get(i).getHeadline() == null){
+//                    Log.i(LOG_TAG,"null");
+//                }
+//                else {
+//                    Log.i(LOG_TAG,mNews.get(i).getHeadline());
+//                }
+//            }
 
 
         } catch (JSONException e) {
@@ -81,7 +92,6 @@ public class ApiService extends IntentService {
         ACTION_UPDATE_WIDGET = true;
 
 
-
     }
 
     private void updateWidget() {
@@ -94,6 +104,10 @@ public class ApiService extends IntentService {
 
     public static List<News> newsList() {
         return mNews;
+    }
+
+    public static void clearNewsList(){
+        mNews.clear();
     }
 
 }

@@ -105,11 +105,11 @@ public class DrawerMenuItem {
         switch (mMenuPosition) {
             case DRAWER_MENU_ITEM_PLATFORMS:
                 mContext.startActivity(new Intent(mContext, Platforms.class));
-                if (mCallBack != null) mCallBack.onRequestMenuSelected();
+                if (mCallBack != null) mCallBack.onPlatformsSelected();
                 break;
             case DRAWER_MENU_ITEM_FAVORITES:
                 mContext.startActivity(new Intent(mContext, Favorites.class));
-                if (mCallBack != null) mCallBack.onGroupsMenuSelected();
+                if (mCallBack != null) mCallBack.onFavoritesSelected();
                 break;
         }
     }
@@ -119,18 +119,10 @@ public class DrawerMenuItem {
     }
 
     public interface DrawerCallBack {
-        void onProfileMenuSelected();
 
-        void onRequestMenuSelected();
+        void onPlatformsSelected();
 
-        void onGroupsMenuSelected();
+        void onFavoritesSelected();
 
-        void onMessagesMenuSelected();
-
-        void onNotificationsMenuSelected();
-
-        void onSettingsMenuSelected();
-
-        void onTermsMenuSelected();
     }
 }

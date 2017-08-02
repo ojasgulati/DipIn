@@ -33,6 +33,7 @@ public class Platforms extends AppCompatActivity {
     PlatformsAdapter platformsAdapter;
     List<Website> websites;
     InterstitialAd mInterstitialAd;
+    int showAdCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,51 +47,38 @@ public class Platforms extends AppCompatActivity {
         platformsAdapter = new PlatformsAdapter(this, websites);
         recyclerView.setAdapter(platformsAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        mInterstitialAd = new InterstitialAd(this);
 
-        // set the ad unit ID
-        mInterstitialAd.setAdUnitId(getString(R.string.fav_ad_unit_id));
+        SharedPreferences sharedPref = getSharedPreferences("showAd", 0);
+        showAdCount = sharedPref.getInt("showAdCount", 1);
+        showAdCount = showAdCount + 1;
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt("showAdCount", showAdCount);
+        editor.commit();
 
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                .build();
+        Log.i("SHOWAD", Integer.toString(sharedPref.getInt("showAdCount", 1)));
 
-        // Load ads into Interstitial Ads
-        mInterstitialAd.loadAd(adRequest);
-    }
+        if (showAdCount % 10 == 0) {
+            mInterstitialAd = new InterstitialAd(this);
 
-    private void showInterstitial() {
-        if (mInterstitialAd.isLoaded()) {
-            mInterstitialAd.show();
+            // set the ad unit ID
+            mInterstitialAd.setAdUnitId(getString(R.string.fav_ad_unit_id));
+
+            AdRequest adRequest = new AdRequest.Builder()
+                    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                    .build();
+
+            // Load ads into Interstitial Ads
+            mInterstitialAd.loadAd(adRequest);
         }
-    }
 
 
-    @Override
-    public void onBackPressed() {
-        if (mInterstitialAd.isLoaded()) {
-            mInterstitialAd.show();
-            mInterstitialAd.setAdListener(new AdListener() {
-                @Override
-                public void onAdClosed() {
-                    super.onAdClosed();
-                    finish();
-                }
-            });
-        } else {
-            super.onBackPressed();
-        }
     }
+
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
             case android.R.id.home:
-                mInterstitialAd.setAdListener(new AdListener() {
-                    public void onAdLoaded() {
-                        showInterstitial();
-                    }
-                });
                 onBackPressed();
                 return true;
         }
@@ -191,13 +179,27 @@ public class Platforms extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     String urlString = currentWebsite.getPlatformTitle().toLowerCase().replace(" ", "-");
-                    String baseUrl = "https://newsapi.org/v1/articles?source=" + urlString + "&sortBy=top&apiKey=839b127083e848e188382abfc1e8ee16";
+                    String baseUrl = "https://newsapi.org/v1/articles?source=" + urlString + "&apiKey=839b127083e848e188382abfc1e8ee16";
                     SharedPreferences sharedPref = getSharedPreferences("sharedPlatform", 0);
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString(getString(R.string.pref_shared_platform), baseUrl);
                     editor.commit();
                     Log.i("URL", sharedPref.getString(getString(R.string.pref_shared_platform), "Null"));
-                    finish();
+                    if (showAdCount % 10 == 0) {
+                        if (mInterstitialAd.isLoaded()) {
+                            mInterstitialAd.show();
+                            mInterstitialAd.setAdListener(new AdListener() {
+                                @Override
+                                public void onAdClosed() {
+                                    super.onAdClosed();
+                                    finish();
+                                }
+                            });
+                        } else
+                            finish();
+                    } else {
+                        finish();
+                    }
                 }
             });
         }

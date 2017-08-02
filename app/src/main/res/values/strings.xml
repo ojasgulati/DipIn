@@ -7,6 +7,8 @@
     <string name="heart_clip_hidden">M18 37 L38 37 L38 37 L18 37 Z</string>
     <string name="heart_clip_shown">M0 0 L56 0 L56 56 L0 56 Z</string>
     <string name="share_news">Check Out! \n %1$s \n\n Find out more at %2$s</string>
+    <string name="time_hours">%1$s hours ago</string>
+    <string name="time_minutes">%1$s hours ago</string>
     <string name="open_drawer">Drawer Open</string>
     <string name="close_drawer">Drawer Close</string>
 
@@ -90,5 +92,8 @@
 
     <string name="main_ad_unit_id">ca-app-pub-1205687093418675/6000748830</string>
     <string name="fav_ad_unit_id">ca-app-pub-1205687093418675/1920713655</string>
+    <string name="detail_ad_unit_id">ca-app-pub-1205687093418675/8314665371</string>
+
+    <string name="facebook_application_id" translatable="false">1392098020826878</string>
 
 </resources>
