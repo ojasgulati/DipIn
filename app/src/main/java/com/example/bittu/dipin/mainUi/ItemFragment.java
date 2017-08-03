@@ -4,12 +4,8 @@ package com.example.bittu.dipin.mainUi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.transition.TransitionManager;
 import android.support.v4.app.Fragment;
@@ -27,7 +23,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
@@ -35,6 +30,7 @@ import com.bumptech.glide.request.target.Target;
 import com.example.bittu.dipin.DetailActivity;
 import com.example.bittu.dipin.News;
 import com.example.bittu.dipin.R;
+import com.example.bittu.dipin.Utils;
 import com.example.bittu.dipin.service.ApiService;
 import com.flipboard.bottomsheet.BottomSheetLayout;
 import com.flipboard.bottomsheet.commons.IntentPickerSheetView;
@@ -44,13 +40,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -128,210 +119,168 @@ public class ItemFragment extends Fragment {
 
         List<News> mNews = ApiService.newsList();
 
-        final News currentNews = mNews.get(mCurrentPosition);
-        Log.i("Author", currentNews.getHeadline());
-        if (!currentNews.getHeadline().equals("null"))
-            title.setText(currentNews.getHeadline());
-        if (!currentNews.getDate().equals("null")) {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            try {
-                Date dtIn = simpleDateFormat.parse(currentNews.getDate());
-                Log.i("Time", Long.toString(dtIn.getTime()));
+        if (mNews.get(mCurrentPosition) != null) {
+            final News currentNews = mNews.get(mCurrentPosition);
+            Log.i("Author", currentNews.getHeadline());
+            if (!currentNews.getHeadline().equals("null"))
+                title.setText(currentNews.getHeadline());
+            if (!currentNews.getDate().equals("null")) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                try {
+                    Date dtIn = simpleDateFormat.parse(currentNews.getDate());
+                    Log.i("Time", Long.toString(dtIn.getTime()));
 
-                String dateFormated = printDifference(dtIn);
-                if (dateFormated == null) {
-                    date.setText(currentNews.getAuthor());
-                } else {
-                    date.setText(dateFormated + " - " + currentNews.getAuthor());
+                    String dateFormated = Utils.printDifference(getActivity(), dtIn);
+                    if (dateFormated == null) {
+                        date.setText(currentNews.getAuthor());
+                    } else {
+                        date.setText(dateFormated + " - " + currentNews.getAuthor());
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
-            } catch (ParseException e) {
-                e.printStackTrace();
+
+
+            } else if (!(currentNews.getAuthor().equals("null") || currentNews.getAuthor().equals(""))) {
+                date.setText(currentNews.getAuthor());
+            } else {
+                date.setVisibility(View.GONE);
             }
 
 
-        } else if (!(currentNews.getAuthor().equals("null") || currentNews.getAuthor().equals(""))) {
-            date.setText(currentNews.getAuthor());
-        } else {
-            date.setVisibility(View.GONE);
-        }
+            if (!currentNews.getImgUrl().equals("null")) {
+                setUpImage(currentNews);
+            } else {
+                image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
+                imageProgress.setVisibility(View.GONE);
+                contentLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            }
 
+            detail.setVisibility(View.GONE);
+            textLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (detail.isShown()) {
+                        detail.startAnimation(animationUp);
+                        CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+                            }
 
-        if (!currentNews.getImgUrl().equals("null")) {
-            setUpImage(currentNews);
-        } else {
-            image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
-            imageProgress.setVisibility(View.GONE);
-            contentLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-        }
+                            @Override
+                            public void onFinish() {
+                                detail.setVisibility(View.GONE);
+                                TransitionManager.beginDelayedTransition(listItemLayout);
+                            }
+                        };
+                        countDownTimerStatic.start();
+                    } else {
+                        detail.setVisibility(View.VISIBLE);
+                        detail.startAnimation(animationDown);
+                        TransitionManager.beginDelayedTransition(listItemLayout);
+                    }
+                }
+            });
 
-        detail.setVisibility(View.GONE);
-        textLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (detail.isShown()) {
-                    detail.startAnimation(animationUp);
-                    CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
+            emptyHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_empty);
+            fillHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_fill);
+            final String formattedHeadline = currentNews.getHeadline().replace("$", "").replace(".", "").replace("#", "").replace("[", "").replace("]", "");
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
+
+            valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        AnimatedVectorDrawable drawable = fillHeart;
+                        bookmark.setImageDrawable(drawable);
+                        drawable.start();
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
+            mDatabaseReference.removeEventListener(valueEventListener);
+            bookmark.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
+                    valueEventListener = new ValueEventListener() {
                         @Override
-                        public void onTick(long millisUntilFinished) {
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.exists()) {
+                                AnimatedVectorDrawable drawable = emptyHeart;
+                                bookmark.setImageDrawable(drawable);
+                                drawable.start();
+                                mDatabaseReference.removeValue();
+                            } else {
+                                News bookmarkNews = new
+                                        News(currentNews.getHeadline(), currentNews.getDate(), currentNews.getImgUrl(), currentNews.getDescription(), currentNews.getAuthor(), currentNews.getUrl());
+                                AnimatedVectorDrawable drawable = fillHeart;
+                                bookmark.setImageDrawable(drawable);
+                                drawable.start();
+                                mDatabaseReference.push().setValue(bookmarkNews);
+                            }
+
                         }
 
                         @Override
-                        public void onFinish() {
-                            detail.setVisibility(View.GONE);
-                            TransitionManager.beginDelayedTransition(listItemLayout);
+                        public void onCancelled(DatabaseError databaseError) {
+
                         }
                     };
-                    countDownTimerStatic.start();
-                } else {
-                    detail.setVisibility(View.VISIBLE);
-                    detail.startAnimation(animationDown);
-                    TransitionManager.beginDelayedTransition(listItemLayout);
+                    mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
+                    mDatabaseReference.removeEventListener(valueEventListener);
                 }
-            }
-        });
+            });
 
-        emptyHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_empty);
-        fillHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_fill);
-        final String formattedHeadline = currentNews.getHeadline().replace("$", "").replace(".", "").replace("#", "").replace("[", "").replace("]", "");
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
-
-        valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    AnimatedVectorDrawable drawable = fillHeart;
-                    bookmark.setImageDrawable(drawable);
-                    drawable.start();
-
+            url.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                    intent.putExtra(getActivity().getString(R.string.intent_position_detail), currentNews.getUrl());
+                    getActivity().startActivity(intent);
+                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
                 }
-            }
+            });
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
 
-            }
-        };
-        mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
-        mDatabaseReference.removeEventListener(valueEventListener);
-        bookmark.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
-                valueEventListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+            share.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_news, currentNews.getHeadline(), currentNews.getUrl()));
 
-                        if (dataSnapshot.exists()) {
-                            AnimatedVectorDrawable drawable = emptyHeart;
-                            bookmark.setImageDrawable(drawable);
-                            drawable.start();
-                            mDatabaseReference.removeValue();
-                        } else {
-                            News bookmarkNews = new
-                                    News(currentNews.getHeadline(), currentNews.getDate(), currentNews.getImgUrl(), currentNews.getDescription(), currentNews.getAuthor(), currentNews.getUrl());
-                            AnimatedVectorDrawable drawable = fillHeart;
-                            bookmark.setImageDrawable(drawable);
-                            drawable.start();
-                            mDatabaseReference.push().setValue(bookmarkNews);
+                    bottomSheet.showWithSheetView(new IntentPickerSheetView(getActivity(), shareIntent, R.string.article_share, new IntentPickerSheetView.OnIntentPickedListener() {
+                        @Override
+                        public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
+                            bottomSheet.dismissSheet();
+                            startActivity(activityInfo.getConcreteIntent(shareIntent));
                         }
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                };
-                mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
-                mDatabaseReference.removeEventListener(valueEventListener);
-            }
-        });
-
-        url.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra(getActivity().getString(R.string.intent_position_detail), mCurrentPosition);
-                getActivity().startActivity(intent);
-                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
-            }
-        });
+                    }));
 
 
-        share.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Uri bmpUri = getLocalBitmapUri(image);
-                final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_news, currentNews.getHeadline(), currentNews.getUrl()));
-                shareIntent.putExtra(Intent.EXTRA_STREAM, bmpUri);
-                shareIntent.setType("image/*");
+                }
+            });
 
-                bottomSheet.showWithSheetView(new IntentPickerSheetView(getActivity(), shareIntent, R.string.article_share, new IntentPickerSheetView.OnIntentPickedListener() {
-                    @Override
-                    public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
-                        bottomSheet.dismissSheet();
-                        startActivity(activityInfo.getConcreteIntent(shareIntent));
-                    }
-                }));
-
-
-            }
-        });
-
-        return view;
-
-    }
-
-    public String printDifference(Date startDate) {
-        //milliseconds
-        Calendar c = Calendar.getInstance();
-        int current_date = c.get(Calendar.HOUR_OF_DAY);
-
-        long different = -current_date + startDate.getTime();
-
-
-        long secondsInMilli = 1000;
-        long minutesInMilli = secondsInMilli * 60;
-        long hoursInMilli = minutesInMilli * 60;
-        long daysInMilli = hoursInMilli * 24;
-
-        long elapsedDays = different / daysInMilli;
-        different = different % daysInMilli;
-
-        long elapsedHours = different / hoursInMilli;
-        different = different % hoursInMilli;
-
-        long elapsedMinutes = different / minutesInMilli;
-        different = different % minutesInMilli;
-
-        long elapsedSeconds = different / secondsInMilli;
-
-        String dateFormated;
-        if (elapsedHours > 0) {
-            dateFormated = getString(R.string.time_hours, Long.toString(elapsedHours));
-        } else if (elapsedMinutes > 0) {
-            dateFormated = getString(R.string.time_minutes, Long.toString(elapsedMinutes));
-        } else {
-            dateFormated = null;
+            return view;
         }
-        return dateFormated;
+        return null;
+
     }
 
-    private byte[] bitmapToByte(Bitmap bitmap){
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        return byteArray;
-    }
 
     private void setUpImage(News currentNews) {
 
         Glide.with(getActivity())
                 .load(currentNews.getImgUrl().toString())
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .dontAnimate()
-                .override(200,200)
+                .override(300, 300)
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
                     public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
@@ -347,7 +296,7 @@ public class ItemFragment extends Fragment {
 
 
                             Glide.with(getActivity())
-                                    .load(bitmapToByte(bitmap))
+                                    .load(Utils.bitmapToByte(bitmap))
                                     .bitmapTransform(new jp.wasabeef.glide.transformations.BlurTransformation(getActivity(), 50))
                                     .dontAnimate()
                                     .into(imageBlurred);
@@ -376,36 +325,6 @@ public class ItemFragment extends Fragment {
 
                 })
                 .into(image);
-
-
     }
-
-    public Uri getLocalBitmapUri(ImageView imageView) {
-        // Extract Bitmap from ImageView drawable
-        Drawable drawable = imageView.getDrawable();
-        Bitmap bmp = null;
-        if (drawable instanceof BitmapDrawable) {
-            bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-        } else {
-            return null;
-        }
-        // Store image to default external storage directory
-        Uri bmpUri = null;
-        try {
-            // Use methods on Context to access package-specific directories on external storage.
-            // This way, you don't need to request external read/write permission.
-            // See https://youtu.be/5xVh-7ywKpE?t=25m25s
-            File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES), "share_image_" + System.currentTimeMillis() + ".png");
-            FileOutputStream out = new FileOutputStream(file);
-            bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
-            out.close();
-            // **Warning:** This will fail for API >= 24, use a FileProvider as shown below instead.
-            bmpUri = Uri.fromFile(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bmpUri;
-    }
-
 
 }

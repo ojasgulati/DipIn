@@ -11,7 +11,6 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
-import com.example.bittu.dipin.service.ApiService;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
@@ -40,14 +39,13 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         ButterKnife.inject(this);
-        news = ApiService.newsList();
-        final News currentNews = news.get(getIntent().getIntExtra(getString(R.string.intent_position_detail), -1));
-        Log.i(LOG_TAG, currentNews.getUrl());
+        String newsUrl = getIntent().getStringExtra(getString(R.string.intent_position_detail));
+        Log.i(LOG_TAG, newsUrl);
         WebSettings webSettings = webView.getSettings();
         webView.setWebViewClient(new WebViewClient());
 
         webSettings.setJavaScriptEnabled(true);
-        webView.loadUrl(currentNews.getUrl());
+        webView.loadUrl(newsUrl);
         webView.setWebChromeClient(new WebChromeClient() {
 
             public void onProgressChanged(WebView webView1, int newProgress) {
