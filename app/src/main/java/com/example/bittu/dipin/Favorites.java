@@ -2,15 +2,12 @@ package com.example.bittu.dipin;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.support.transition.TransitionManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.graphics.Palette;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -30,10 +27,6 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
-import com.bumptech.glide.load.resource.drawable.GlideDrawable;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.flipboard.bottomsheet.BottomSheetLayout;
 import com.flipboard.bottomsheet.commons.IntentPickerSheetView;
 import com.google.firebase.database.ChildEventListener;
@@ -47,6 +40,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -65,6 +59,8 @@ public class Favorites extends AppCompatActivity {
     ImageView emptyViewImage;
     @InjectView(R.id.fav_error_emptyView_text)
     TextView emptyViewText;
+    @InjectView(R.id.news_gif)
+    LinearLayout gifLayout;
     private Animation animationUp, animationDown;
 
     public static boolean NOTIFY;
@@ -95,14 +91,20 @@ public class Favorites extends AppCompatActivity {
         animationDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.slide_down);
         networkAvailable = isNetworkAvailable(this);
         if (!networkAvailable) {
+            gifLayout.setVisibility(View.GONE);
             emptyViewImage.setVisibility(View.VISIBLE);
             emptyViewText.setVisibility(View.VISIBLE);
             emptyViewText.setText(getString(R.string.no_connection));
 
         } else {
+
             emptyViewImage.setVisibility(View.GONE);
             emptyViewText.setVisibility(View.GONE);
-            favRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            favRecyclerView.setLayoutManager(linearLayoutManager);
+            DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(favRecyclerView.getContext(),
+                    linearLayoutManager.getOrientation());
+            favRecyclerView.addItemDecoration(dividerItemDecoration);
         }
 
 
@@ -164,6 +166,8 @@ public class Favorites extends AppCompatActivity {
                 favAdapter = new FavAdapter(Favorites.this, databaseNews, animationUp, animationDown);
                 favRecyclerView.setAdapter(favAdapter);
                 favAdapter.notifyDataSetChanged();
+
+                gifLayout.setVisibility(View.GONE);
             }
 
             @Override
@@ -247,7 +251,7 @@ public class Favorites extends AppCompatActivity {
             final News currentNews = mNews.get(position);
             holder.title.setText(currentNews.getHeadline());
             if (!currentNews.getDate().equals("null")) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
                 try {
                     Date dtIn = simpleDateFormat.parse(currentNews.getDate());
                     Log.i("Time", Long.toString(dtIn.getTime()));
@@ -270,34 +274,34 @@ public class Favorites extends AppCompatActivity {
             }
             setUpImage(currentNews, holder);
 
-            holder.detail.setVisibility(View.GONE);
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (holder.detail.isShown()) {
-                        holder.detail.startAnimation(animationUp);
-
-                        CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
-                            @Override
-                            public void onTick(long millisUntilFinished) {
-                            }
-
-                            @Override
-                            public void onFinish() {
-                                holder.detail.setVisibility(View.GONE);
-                                holder.image.setVisibility(View.GONE);
-                                TransitionManager.beginDelayedTransition(favRecyclerView);
-                            }
-                        };
-                        countDownTimerStatic.start();
-                    } else {
-                        holder.detail.setVisibility(View.VISIBLE);
-                        holder.image.setVisibility(View.VISIBLE);
-                        holder.detail.startAnimation(animationDown);
-                        TransitionManager.beginDelayedTransition(favRecyclerView);
-                    }
-                }
-            });
+//            holder.detail.setVisibility(View.GONE);
+//            holder.itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (holder.detail.isShown()) {
+//                        holder.detail.startAnimation(animationUp);
+//
+//                        CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
+//                            @Override
+//                            public void onTick(long millisUntilFinished) {
+//                            }
+//
+//                            @Override
+//                            public void onFinish() {
+//                                holder.detail.setVisibility(View.GONE);
+//                                holder.image.setVisibility(View.GONE);
+//                                TransitionManager.beginDelayedTransition(favRecyclerView);
+//                            }
+//                        };
+//                        countDownTimerStatic.start();
+//                    } else {
+//                        holder.detail.setVisibility(View.VISIBLE);
+//                        holder.image.setVisibility(View.VISIBLE);
+//                        holder.detail.startAnimation(animationDown);
+//                        TransitionManager.beginDelayedTransition(favRecyclerView);
+//                    }
+//                }
+//            });
 
             emptyHeart = (AnimatedVectorDrawable) getDrawable(R.drawable.avd_heart_empty);
             fillHeart = (AnimatedVectorDrawable) getDrawable(R.drawable.avd_heart_fill);
@@ -366,32 +370,6 @@ public class Favorites extends AppCompatActivity {
                     .fitCenter()
                     .centerCrop()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .listener(new RequestListener<String, GlideDrawable>() {
-                        @Override
-                        public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                            Bitmap bitmap = ((GlideBitmapDrawable) resource.getCurrent()).getBitmap();
-                            Palette.generateAsync(bitmap, new Palette.PaletteAsyncListener() {
-                                public void onGenerated(Palette palette) {
-                                    int defaultColor = 0xFF333333;
-                                    int darkMutedColor = palette.getDarkMutedColor(defaultColor);
-                                    holder.title.setBackgroundColor(darkMutedColor);
-                                    holder.listItemLayout.setBackgroundColor(darkMutedColor);
-                                    holder.textLayout.setBackgroundColor(darkMutedColor);
-                                    holder.date.setBackgroundColor(darkMutedColor);
-                                    holder.image.setVisibility(View.GONE);
-
-
-                                }
-                            });
-
-                            return false;
-                        }
-                    })
                     .into(holder.image);
             holder.image.setAdjustViewBounds(true);
 

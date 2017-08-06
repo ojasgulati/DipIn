@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
         <activity
-            android:name=".mainUi.MainActivity"
+            android:name="com.example.bittu.dipin.mainUi.MainActivity"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,29 +21,30 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.ApiService" />
+        <service android:name="com.example.bittu.dipin.service.ApiService" />
 
         <service
-            android:name=".StackRemoteViewsService"
+            android:name="com.example.bittu.dipin.StackRemoteViewsService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <activity
-            android:name=".DetailActivity"
+            android:name="com.example.bittu.dipin.DetailActivity"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".mainUi.MainActivity"/>
+            android:parentActivityName="com.example.bittu.dipin.mainUi.MainActivity"/>
         <activity
-            android:name=".Favorites"
+            android:name="com.example.bittu.dipin.Favorites"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".mainUi.MainActivity"/>
+            android:parentActivityName="com.example.bittu.dipin.mainUi.MainActivity"/>
         <activity
-            android:name=".Platforms"
+            android:name="com.example.bittu.dipin.Platforms"
             android:theme="@style/detailTheme"
-            android:parentActivityName=".mainUi.MainActivity"/>
+            android:parentActivityName="com.example.bittu.dipin.mainUi.MainActivity"/>
 
-        <receiver android:name=".NewsWidget">
+        <receiver android:name="com.example.bittu.dipin.NewsWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
 
             <meta-data
                 android:name="android.appwidget.provider"

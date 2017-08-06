@@ -14,6 +14,7 @@
 
 
     <string name="pref_shared_platform">sharedNews</string>
+    <string name="pref_shared_website">sharedWebsite</string>
 
     <string name="Al_Jazeera_English">Al Jazeera English</string>
     <string name="Associated_Press">Associated Press</string>
@@ -33,7 +34,7 @@
     <string name="ESPN_Cric_Info">ESPN Cric Info</string>
     <string name="Financial_Times">Financial Times</string>
     <string name="Fortune">Fortune</string>
-    <string name="FourFourTwo">FourFourTwo</string>
+    <string name="FourFourTwo">Four Four Two</string>
     <string name="Fox_Sports">Fox Sports</string>
     <string name="Google_News">Google News</string>
     <string name="Gruenderszene">Gruenderszene</string>
@@ -95,5 +96,14 @@
     <string name="detail_ad_unit_id">ca-app-pub-1205687093418675/8314665371</string>
 
     <string name="facebook_application_id" translatable="false">1392098020826878</string>
+
+    <string name="topic_general">General</string>
+    <string name="topic_sports">Sports</string>
+    <string name="topic_entertainment">Entertainment</string>
+    <string name="topic_business">Business</string>
+    <string name="topic_technology">Technology</string>
+    <string name="topic_music">Music</string>
+    <string name="topic_science_nature">Science and Nature</string>
+    <string name="topic_gaming">Gaming</string>
 
 </resources>

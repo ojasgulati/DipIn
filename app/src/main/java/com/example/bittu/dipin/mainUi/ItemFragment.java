@@ -114,163 +114,172 @@ public class ItemFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.list_item, container, false);
         ButterKnife.inject(this, view);
-        animationUp = AnimationUtils.loadAnimation(getActivity(), R.anim.slide_up);
-        animationDown = AnimationUtils.loadAnimation(getActivity(), R.anim.slide_down);
 
         List<News> mNews = ApiService.newsList();
 
         if (mNews.get(mCurrentPosition) != null) {
-            final News currentNews = mNews.get(mCurrentPosition);
-            Log.i("Author", currentNews.getHeadline());
-            if (!currentNews.getHeadline().equals("null"))
-                title.setText(currentNews.getHeadline());
-            if (!currentNews.getDate().equals("null")) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                try {
-                    Date dtIn = simpleDateFormat.parse(currentNews.getDate());
-                    Log.i("Time", Long.toString(dtIn.getTime()));
-
-                    String dateFormated = Utils.printDifference(getActivity(), dtIn);
-                    if (dateFormated == null) {
-                        date.setText(currentNews.getAuthor());
-                    } else {
-                        date.setText(dateFormated + " - " + currentNews.getAuthor());
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-
-
-            } else if (!(currentNews.getAuthor().equals("null") || currentNews.getAuthor().equals(""))) {
-                date.setText(currentNews.getAuthor());
-            } else {
-                date.setVisibility(View.GONE);
-            }
-
-
-            if (!currentNews.getImgUrl().equals("null")) {
-                setUpImage(currentNews);
-            } else {
-                image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
-                imageProgress.setVisibility(View.GONE);
-                contentLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-            }
-
-            detail.setVisibility(View.GONE);
-            textLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (detail.isShown()) {
-                        detail.startAnimation(animationUp);
-                        CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
-                            @Override
-                            public void onTick(long millisUntilFinished) {
-                            }
-
-                            @Override
-                            public void onFinish() {
-                                detail.setVisibility(View.GONE);
-                                TransitionManager.beginDelayedTransition(listItemLayout);
-                            }
-                        };
-                        countDownTimerStatic.start();
-                    } else {
-                        detail.setVisibility(View.VISIBLE);
-                        detail.startAnimation(animationDown);
-                        TransitionManager.beginDelayedTransition(listItemLayout);
-                    }
-                }
-            });
-
-            emptyHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_empty);
-            fillHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_fill);
-            final String formattedHeadline = currentNews.getHeadline().replace("$", "").replace(".", "").replace("#", "").replace("[", "").replace("]", "");
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
-
-            valueEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.exists()) {
-                        AnimatedVectorDrawable drawable = fillHeart;
-                        bookmark.setImageDrawable(drawable);
-                        drawable.start();
-
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            };
-            mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
-            mDatabaseReference.removeEventListener(valueEventListener);
-            bookmark.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
-                    valueEventListener = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-
-                            if (dataSnapshot.exists()) {
-                                AnimatedVectorDrawable drawable = emptyHeart;
-                                bookmark.setImageDrawable(drawable);
-                                drawable.start();
-                                mDatabaseReference.removeValue();
-                            } else {
-                                News bookmarkNews = new
-                                        News(currentNews.getHeadline(), currentNews.getDate(), currentNews.getImgUrl(), currentNews.getDescription(), currentNews.getAuthor(), currentNews.getUrl());
-                                AnimatedVectorDrawable drawable = fillHeart;
-                                bookmark.setImageDrawable(drawable);
-                                drawable.start();
-                                mDatabaseReference.push().setValue(bookmarkNews);
-                            }
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    };
-                    mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
-                    mDatabaseReference.removeEventListener(valueEventListener);
-                }
-            });
-
-            url.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(getActivity(), DetailActivity.class);
-                    intent.putExtra(getActivity().getString(R.string.intent_position_detail), currentNews.getUrl());
-                    getActivity().startActivity(intent);
-                    getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
-                }
-            });
-
-
-            share.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_news, currentNews.getHeadline(), currentNews.getUrl()));
-
-                    bottomSheet.showWithSheetView(new IntentPickerSheetView(getActivity(), shareIntent, R.string.article_share, new IntentPickerSheetView.OnIntentPickedListener() {
-                        @Override
-                        public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
-                            bottomSheet.dismissSheet();
-                            startActivity(activityInfo.getConcreteIntent(shareIntent));
-                        }
-                    }));
-
-
-                }
-            });
-
+            News currentNews = mNews.get(mCurrentPosition);
+            setupNews(currentNews);
             return view;
         }
+
         return null;
+
+    }
+
+    private void setupNews(final News currentNews){
+        Log.i("Author", currentNews.getHeadline());
+        if (!currentNews.getHeadline().equals("null"))
+            title.setText(currentNews.getHeadline());
+        if (!currentNews.getDate().equals("null")) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            try {
+                Date dtIn = simpleDateFormat.parse(currentNews.getDate());
+                Log.i("Time", Long.toString(dtIn.getTime()));
+
+                String dateFormated = Utils.printDifference(getActivity(), dtIn);
+                if (dateFormated == null) {
+                    date.setText(currentNews.getAuthor());
+                } else {
+                    date.setText(dateFormated + " - " + currentNews.getAuthor());
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+        } else if (!(currentNews.getAuthor().equals("null") || currentNews.getAuthor().equals(""))) {
+            date.setText(currentNews.getAuthor());
+        } else {
+            date.setVisibility(View.GONE);
+        }
+
+
+        if (!currentNews.getImgUrl().equals("null")) {
+            setUpImage(currentNews);
+        } else {
+            image.setImageDrawable(getActivity().getDrawable(R.drawable.not_available));
+            imageProgress.setVisibility(View.GONE);
+            contentLayout.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        }
+
+        animationUp = AnimationUtils.loadAnimation(getActivity(), R.anim.slide_up);
+        animationDown = AnimationUtils.loadAnimation(getActivity(), R.anim.slide_down);
+
+        detail.setVisibility(View.GONE);
+        textLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (detail.isShown()) {
+                    detail.startAnimation(animationUp);
+                    CountDownTimer countDownTimerStatic = new CountDownTimer(COUNTDOWN_RUNNING_TIME, 16) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            detail.setVisibility(View.GONE);
+                            TransitionManager.beginDelayedTransition(listItemLayout);
+                        }
+                    };
+                    countDownTimerStatic.start();
+                } else {
+                    detail.setVisibility(View.VISIBLE);
+                    detail.startAnimation(animationDown);
+                    TransitionManager.beginDelayedTransition(listItemLayout);
+                }
+            }
+        });
+
+        emptyHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_empty);
+        fillHeart = (AnimatedVectorDrawable) getActivity().getDrawable(R.drawable.avd_heart_fill);
+        final String formattedHeadline = currentNews.getHeadline().replace("$", "").replace(".", "").replace("#", "").replace("[", "").replace("]", "");
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
+
+        valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    AnimatedVectorDrawable drawable = fillHeart;
+                    bookmark.setImageDrawable(drawable);
+                    drawable.start();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+        mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
+        mDatabaseReference.removeEventListener(valueEventListener);
+        bookmark.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(mUserId).child(formattedHeadline);
+                valueEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        if (dataSnapshot.exists()) {
+                            AnimatedVectorDrawable drawable = emptyHeart;
+                            bookmark.setImageDrawable(drawable);
+                            drawable.start();
+                            mDatabaseReference.removeValue();
+                        } else {
+                            News bookmarkNews = new
+                                    News(currentNews.getHeadline(), currentNews.getDate(), currentNews.getImgUrl(), currentNews.getDescription(), currentNews.getAuthor(), currentNews.getUrl());
+                            AnimatedVectorDrawable drawable = fillHeart;
+                            bookmark.setImageDrawable(drawable);
+                            drawable.start();
+                            mDatabaseReference.push().setValue(bookmarkNews);
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                };
+                mDatabaseReference.addListenerForSingleValueEvent(valueEventListener);
+                mDatabaseReference.removeEventListener(valueEventListener);
+            }
+        });
+
+        url.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra(getActivity().getString(R.string.intent_position_detail), currentNews.getUrl());
+                getActivity().startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.enter_from_right, R.anim.exit_out_left);
+            }
+        });
+
+
+        share.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_news, currentNews.getHeadline(), currentNews.getUrl()));
+                shareIntent.setType("text/plain");
+
+                bottomSheet.showWithSheetView(new IntentPickerSheetView(getActivity(), shareIntent, R.string.article_share, new IntentPickerSheetView.OnIntentPickedListener() {
+                    @Override
+                    public void onIntentPicked(IntentPickerSheetView.ActivityInfo activityInfo) {
+                        bottomSheet.dismissSheet();
+                        startActivity(activityInfo.getConcreteIntent(shareIntent));
+                    }
+                }));
+
+
+            }
+        });
+
 
     }
 

@@ -29,7 +29,7 @@ public class QueryUtil {
         String itemsJson = null;
         try {
             SharedPreferences prefs = context.getSharedPreferences("sharedPlatform",0);
-            URL baseUrl = new URL(prefs.getString(context.getString(R.string.pref_shared_platform), "https://newsapi.org/v1/articles?source=bbc-news&apiKey=839b127083e848e188382abfc1e8ee16")); // GET YOUR OWN API at https://newsapi.org/
+            URL baseUrl = new URL(prefs.getString(context.getString(R.string.pref_shared_website), "https://newsapi.org/v1/articles?source=bbc-news&apiKey=839b127083e848e188382abfc1e8ee16")); // GET YOUR OWN API at https://newsapi.org/
             itemsJson = fetchPlainText(baseUrl);
         } catch (IOException e) {
             Log.e(TAG, "Error fetching items JSON", e);

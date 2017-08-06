@@ -17,19 +17,23 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bittu.dipin.R;
+import com.example.bittu.dipin.Utils;
+import com.example.bittu.dipin.Website;
 import com.example.bittu.dipin.drawer.DrawerHeader;
 import com.example.bittu.dipin.drawer.DrawerMenuItem;
 import com.example.bittu.dipin.service.ApiService;
@@ -41,7 +45,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.mindorks.placeholderview.PlaceHolderView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -58,13 +64,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     PlaceHolderView mDrawerView;
     @InjectView(R.id.drawerLayout)
     DrawerLayout mDrawer;
-    @InjectView(R.id.drawerViewLayout)
-    FrameLayout mDrawerViewLayout;
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
     @InjectView(R.id.vertical_view_pager)
     com.example.bittu.dipin.VerticalViewPager verticalViewPager;
-    @InjectView(R.id.gif_layout)
+    @InjectView(R.id.news_gif)
     LinearLayout gifLayout;
     @InjectView(R.id.error_emptyView_image)
     ImageView emptyViewImage;
@@ -72,8 +76,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     TextView emptyViewText;
     @InjectView(R.id.indicator)
     CircleIndicator indicator;
+    @InjectView(R.id.newsItemRecyclerView)
+    RecyclerView recyclerView;
+    @InjectView(R.id.topic_title_main)
+    TextView topicTitle;
 
-    private boolean doNotifyDataSetChangedOnce = false;
+    private boolean isDrawerSetup = false;
     private boolean mIsRefreshing = false;
 
     private NewsPagerAdapter mPagerAdapter;
@@ -90,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     FirebaseUser user;
+    List<Website> websites;
 
     BroadcastReceiver viewUpdate = new BroadcastReceiver() {
         @Override
@@ -128,13 +137,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     setEmptyViewText();
                     mSwipeRefresh.setRefreshing(false);
                 }
+                removeEmptyViewText();
                 startService(new Intent(MainActivity.this, ApiService.class));
             }
         });
         userAuth();
-        setupDrawer();
+        newsSetupDrawer();
         adLoad();
-
     }
 
     @Override
@@ -142,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onDestroy();
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
         sp.unregisterOnSharedPreferenceChangeListener(this);
-
         ApiService.clearNewsList();
     }
 
@@ -166,15 +174,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         networkAvailable = isNetworkAvailable(this);
         if (!networkAvailable) {
-           setEmptyViewText();
+            setEmptyViewText();
         }
 
         SharedPreferences sp = getSharedPreferences("sharedPlatform", 0);
         sp.registerOnSharedPreferenceChangeListener(this);
-
-        if (doNotifyDataSetChangedOnce) {
-            mPagerAdapter.notifyDataSetChanged();
-        }
 
     }
 
@@ -184,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
+        mDrawer.closeDrawer(Gravity.START);
     }
 
     @Override
@@ -191,13 +196,18 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
-                Intent i = getBaseContext().getPackageManager()
-                        .getLaunchIntentForPackage(getBaseContext().getPackageName());
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(i);
+                if (emptyViewImage.getVisibility() == View.VISIBLE) {
+                    startService(new Intent(MainActivity.this, ApiService.class));
+                    removeEmptyViewText();
+                }
             } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, R.string.login_to_continue, Toast.LENGTH_LONG).show();
-                finish();
+                networkAvailable = isNetworkAvailable(MainActivity.this);
+                if (networkAvailable) {
+                    Toast.makeText(this, R.string.login_to_continue, Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    setEmptyViewText();
+                }
             }
         }
     }
@@ -205,11 +215,23 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         if (s.equals(getString(R.string.pref_shared_platform))) {
-            gifLayout.setVisibility(View.VISIBLE);
-            ApiService.clearNewsList();
-            startService(new Intent(this, ApiService.class));
-            adLoad();
-            Log.i("TAG", sharedPreferences.getString(getString(R.string.pref_shared_platform), "URL NULL"));
+            newsSetupDrawer();
+        }
+
+        if (s.equals(getString(R.string.pref_shared_website))) {
+            networkAvailable = isNetworkAvailable(this);
+            if (networkAvailable) {
+                gifLayout.setVisibility(View.VISIBLE);
+                ApiService.clearNewsList();
+                startService(new Intent(this, ApiService.class));
+                if (!mIsRefreshing) {
+                    mPagerAdapter.notifyDataSetChanged();
+                }
+                adLoad();
+                Log.i("TAG", sharedPreferences.getString(getString(R.string.pref_shared_platform), "URL NULL"));
+            } else {
+                setEmptyViewText();
+            }
         }
     }
 
@@ -220,7 +242,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             mPagerAdapter = new NewsPagerAdapter(getSupportFragmentManager());
             verticalViewPager.setAdapter(mPagerAdapter);
             indicator.setViewPager(verticalViewPager);
-            doNotifyDataSetChangedOnce = true;
 
         } else {
             gifLayout.setVisibility(View.VISIBLE);
@@ -234,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
 
-    public void setEmptyViewText(){
+    public void setEmptyViewText() {
         emptyViewImage.setVisibility(View.VISIBLE);
         emptyViewText.setVisibility(View.VISIBLE);
         emptyViewText.setText(getString(R.string.no_connection));
@@ -254,26 +275,28 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     mUsername = user.getDisplayName().toString();
                     if (user.getPhotoUrl() != null)
                         mUserPic = user.getPhotoUrl().toString();
+                    if (!isDrawerSetup) {
+                        setupDrawer();
+                        isDrawerSetup = true;
+                    }
                 } else {
                     // User is signed out
                     mUserId = ANONYMOUS;
-                    networkAvailable = isNetworkAvailable(MainActivity.this);
-                    if (networkAvailable) {
-                        startActivityForResult(
-                                AuthUI.getInstance()
-                                        .createSignInIntentBuilder()
-                                        .setIsSmartLockEnabled(false)
-                                        .setLogo(R.mipmap.ic_launcher)
-                                        .setTheme(R.style.FullscreenTheme)
-                                        .setAllowNewEmailAccounts(true)
-                                        .setAvailableProviders(
-                                                Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
-                                                )
-                                        )
-                                        .build(),
-                                RC_SIGN_IN);
-                    }
+
+                    startActivityForResult(
+                            AuthUI.getInstance()
+                                    .createSignInIntentBuilder()
+                                    .setAvailableProviders(
+                                            Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build())
+                                    )
+                                    .setIsSmartLockEnabled(false)
+                                    .setLogo(R.mipmap.ic_launcher)
+                                    .setTheme(R.style.FullscreenTheme)
+                                    .build(),
+                            RC_SIGN_IN);
+
                 }
+
             }
         };
 
@@ -287,12 +310,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_HOME))
                 .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_PLATFORMS))
                 .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_FAVORITES))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_BREAK))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_RATE_US))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_FEEDBACK))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SHARE_APP))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
-                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
+                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_BREAK));
+//                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_RATE_US))
+//                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_FEEDBACK))
+//                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SHARE_APP))
+//                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_SETTINGS))
+//                .addView(new DrawerMenuItem(this, DrawerMenuItem.DRAWER_MENU_ITEM_LOGOUT));
 
         final ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.open_drawer, R.string.close_drawer) {
             @Override
@@ -308,6 +331,49 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         mDrawer.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
+
+
+    }
+
+    private void newsSetupDrawer() {
+        SharedPreferences prefs = getSharedPreferences("sharedPlatform", 0);
+        String newsTopic = prefs.getString(getString(R.string.pref_shared_platform), "General");
+        websites = new ArrayList<Website>();
+        websites.clear();
+        switch (newsTopic) {
+            case "General":
+                websites = Utils.generalWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_general));
+                break;
+            case "Sports":
+                websites = Utils.sportsWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_sports));
+                break;
+            case "Entertainment":
+                websites = Utils.entertainmentWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_entertainment));
+                break;
+            case "Business":
+                websites = Utils.businessWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_business));
+                break;
+            case "Technology":
+                websites = Utils.technologyWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_technology));
+                break;
+            case "Science and Nature":
+                websites = Utils.scienceNatureWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_science_nature));
+                break;
+            default:
+                websites = Utils.generalWebsiteList(this);
+                topicTitle.setText(getString(R.string.topic_general));
+                break;
+        }
+
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        NewsItemAdapter newsItemAdapter = new NewsItemAdapter(this, websites, mDrawer);
+        recyclerView.setAdapter(newsItemAdapter);
     }
 
 
@@ -351,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 activeNetwork.isConnectedOrConnecting();
     }
 
-    public void adLoad(){
+    public void adLoad() {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -371,6 +437,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 .build();
         adView.loadAd(adRequest);
 
-        Log.e("Loading Ads","Ads");
+        Log.e("Loading Ads", "Ads");
     }
 }

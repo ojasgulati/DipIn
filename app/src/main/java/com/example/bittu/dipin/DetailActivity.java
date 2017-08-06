@@ -46,6 +46,10 @@ public class DetailActivity extends AppCompatActivity {
 
         webSettings.setJavaScriptEnabled(true);
         webView.loadUrl(newsUrl);
+        mInterstitialAd = new InterstitialAd(DetailActivity.this);
+
+        // set the ad unit ID
+        mInterstitialAd.setAdUnitId(getString(R.string.detail_ad_unit_id));
         webView.setWebChromeClient(new WebChromeClient() {
 
             public void onProgressChanged(WebView webView1, int newProgress) {
@@ -63,11 +67,6 @@ public class DetailActivity extends AppCompatActivity {
                 if(newProgress >= 25){
                     if(!isAdLoaded) {
                         isAdLoaded = true;
-                        mInterstitialAd = new InterstitialAd(DetailActivity.this);
-
-                        // set the ad unit ID
-                        mInterstitialAd.setAdUnitId(getString(R.string.detail_ad_unit_id));
-
                         AdRequest adRequest = new AdRequest.Builder()
                                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                                 .build();

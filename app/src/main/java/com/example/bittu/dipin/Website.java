@@ -6,7 +6,7 @@ public class Website {
     private String mPlatformTitle;
     private Drawable mPlatformImage;
 
-    public Website(String platformTitle, Drawable platformImage){
+    private Website(String platformTitle, Drawable platformImage){
         mPlatformTitle = platformTitle;
         mPlatformImage = platformImage;
     }

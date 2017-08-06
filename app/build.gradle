@@ -11,7 +11,7 @@ android {
         }
     }
     compileSdkVersion 25
-    buildToolsVersion "26.0.0"
+    buildToolsVersion "26.0.1"
     defaultConfig {
         applicationId "com.example.bittu.dipin"
         minSdkVersion 21
@@ -54,6 +54,8 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'jp.wasabeef:glide-transformations:2.0.2'
     compile 'me.relex:circleindicator:1.2.2@aar'
+    compile('com.facebook.android:facebook-android-sdk:4.22.1')
+
 }
 apply plugin: 'com.google.gms.google-services'
 

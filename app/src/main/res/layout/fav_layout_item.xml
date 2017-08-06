@@ -35,7 +35,7 @@
             android:fontFamily="sans-serif-condensed"
             android:lineSpacingMultiplier="0.9"
             android:paddingBottom="@dimen/detail_metabar_title_bottom_padding"
-            android:textColor="#fff"
+            android:textColor="#999"
             android:textSize="@dimen/detail_title_text_size"
             android:textStyle="bold" />
 
@@ -50,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="@string/content_date"
-            android:textColor="@android:color/white"
+            android:textColor="#999"
             android:textSize="16sp" />
     </LinearLayout>
 
